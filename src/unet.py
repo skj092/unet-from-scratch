@@ -4,9 +4,9 @@ import torch
 
 def double_conv(in_c, out_c):
     layer = nn.Sequential(
-            nn.Conv2d(in_c, out_c, kernel_size=3),
+            nn.Conv2d(in_c, out_c, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(out_c, out_c, kernel_size=3),
+            nn.Conv2d(out_c, out_c, kernel_size=3 , padding=1),
             nn.ReLU(),)
     return layer
 
@@ -20,10 +20,13 @@ def resize_feature(original, target):
 
 
 class UNet(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channels=3, out_channels=1):
         super().__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
         self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
-        self.conv1 = double_conv(1, 64)
+        self.conv1 = double_conv(3, 64)
         self.conv2 = double_conv(64, 128)
         self.conv3 = double_conv(128, 256)
         self.conv4 = double_conv(256, 512)
@@ -39,7 +42,7 @@ class UNet(nn.Module):
         self.conv8 = double_conv(256, 128)
         self.conv9 = double_conv(128, 64)
 
-        self.out = nn.Conv2d(64, 2, kernel_size=3, padding=1)
+        self.out = nn.Conv2d(64, self.out_channels, kernel_size=3, padding=1)
 
 
     def forward(self, xb):
@@ -76,8 +79,9 @@ class UNet(nn.Module):
 
 
 if __name__ == "__main__":
-    xb = torch.randn(1, 1, 572, 572)
+    xb = torch.randn(20, 3, 224, 224)
     model = UNet()
     out = model(xb)
     print(out.shape)
+    y = torch.ones(20, 224, 224)
 
